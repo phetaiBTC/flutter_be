@@ -14,7 +14,8 @@ class _UsersScreenState extends State<UsersScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final url = 'http://192.168.79.231:4000/';
+  final TextEditingController _searchController = TextEditingController();
+  final url = 'http://192.168.79.143:4000/';
   @override
   void initState() {
     super.initState();
@@ -65,6 +66,19 @@ class _UsersScreenState extends State<UsersScreen> {
     }
   }
 
+  Future<void> searchUser(String email) async {
+    try {
+      final response = await _dio.get(url + 'users/search/$email');
+      setState(() {
+        users = response.data;
+        isLoading = false;
+      });
+      // fetchUsers();
+    } catch (e) {
+      print("❌ Failed to delete user: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +89,13 @@ class _UsersScreenState extends State<UsersScreen> {
           key: _formKey,
           child: Column(
             children: [
+              TextFormField(
+                controller: _searchController,
+                decoration: InputDecoration(labelText: 'search'),
+                validator:
+                    (value) => value!.isEmpty ? 'Please enter username' : null,
+              ),
+              ElevatedButton(onPressed: (){searchUser(_searchController.text);}, child: Text('Search')),
               TextFormField(
                 controller: _usernameController,
                 decoration: InputDecoration(labelText: 'Username'),
@@ -136,7 +157,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                 color: Colors.blue,
                                 onPressed: () async {
                                   final userData = await _dio.get(
-                                    url+'users/${user['id']}',
+                                    url + 'users/${user['id']}',
                                   );
 
                                   showModalBottomSheet(
@@ -195,7 +216,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                               onPressed: () async {
                                                 try {
                                                   await _dio.patch(
-                                                    url+'users/${user['id']}',
+                                                    url + 'users/${user['id']}',
                                                     data: {
                                                       'username':
                                                           nameController.text,
@@ -261,7 +282,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                   if (confirm == true) {
                                     try {
                                       await _dio.delete(
-                                        url+'users/${user['id']}',
+                                        url + 'users/${user['id']}',
                                       );
                                       // fetchUsers()
                                       fetchUsers();
